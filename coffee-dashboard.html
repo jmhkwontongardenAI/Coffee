@@ -1,0 +1,953 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Jenna's Coffee Journal</title>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #F8F9FA;
+    --surface: #FFFFFF;
+    --surface-2: #F3F4F6;
+    --border: #E5E7EB;
+    --accent: #1C1C1E;
+    --accent-2: #6B4F3A;
+    --amber: #B45309;
+    --amber-soft: #FEF3C7;
+    --amber-mid: #D97706;
+    --text-primary: #111827;
+    --text-secondary: #6B7280;
+    --text-muted: #9CA3AF;
+    --green: #065F46;
+    --green-bg: #D1FAE5;
+    --blue: #1E40AF;
+    --blue-bg: #DBEAFE;
+    --purple: #5B21B6;
+    --purple-bg: #EDE9FE;
+    --shadow-sm: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+    --shadow-md: 0 4px 12px rgba(0,0,0,0.08), 0 2px 4px rgba(0,0,0,0.04);
+    --shadow-lg: 0 20px 40px rgba(0,0,0,0.12);
+    --radius: 10px;
+    --radius-sm: 6px;
+  }
+
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Inter', sans-serif;
+    background: var(--bg);
+    color: var(--text-primary);
+    font-size: 14px;
+    line-height: 1.5;
+    -webkit-font-smoothing: antialiased;
+  }
+
+  /* ── Header ── */
+  .header {
+    background: var(--surface);
+    border-bottom: 1px solid var(--border);
+    padding: 0 32px;
+    height: 58px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    position: sticky;
+    top: 0;
+    z-index: 100;
+  }
+  .header-left { display: flex; align-items: center; gap: 12px; }
+  .header-logo {
+    width: 30px; height: 30px;
+    background: var(--accent);
+    border-radius: 8px;
+    display: flex; align-items: center; justify-content: center;
+    font-size: 15px;
+  }
+  .header h1 { font-size: 15px; font-weight: 600; color: var(--text-primary); letter-spacing: -0.01em; }
+  .header-sub { font-size: 12px; color: var(--text-muted); margin-left: 4px; }
+  .header-badge {
+    font-size: 11px;
+    font-weight: 500;
+    background: var(--amber-soft);
+    color: var(--amber);
+    padding: 2px 9px;
+    border-radius: 20px;
+    border: 1px solid #FDE68A;
+  }
+
+  /* ── Layout ── */
+  .main { max-width: 1280px; margin: 0 auto; padding: 28px 24px 60px; }
+
+  /* ── Section Headings ── */
+  .section-head {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 14px;
+  }
+  .section-title {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+  }
+  .section-count {
+    font-size: 12px;
+    color: var(--text-muted);
+  }
+
+  /* ── KPI Row ── */
+  .kpi-row { display: grid; grid-template-columns: repeat(6, 1fr); gap: 12px; margin-bottom: 28px; }
+  .kpi {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 18px 20px;
+    box-shadow: var(--shadow-sm);
+  }
+  .kpi-value { font-size: 26px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.03em; line-height: 1; }
+  .kpi-label { font-size: 12px; color: var(--text-muted); margin-top: 5px; }
+  .kpi-accent { color: var(--amber-mid); }
+
+  /* ── Charts ── */
+  .charts-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-bottom: 16px; }
+  .charts-3 { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 16px; margin-bottom: 28px; }
+  .card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 20px 22px;
+    box-shadow: var(--shadow-sm);
+  }
+  .card-title { font-size: 12px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; }
+  .card canvas { max-height: 220px; }
+
+  /* ── Top Picks ── */
+  .picks-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 12px; margin-bottom: 28px; }
+  .pick-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 16px 18px;
+    box-shadow: var(--shadow-sm);
+    cursor: pointer;
+    transition: box-shadow 0.15s, border-color 0.15s, transform 0.15s;
+    position: relative;
+  }
+  .pick-card:hover { box-shadow: var(--shadow-md); border-color: #D1D5DB; transform: translateY(-1px); }
+  .pick-card.legendary { border-top: 3px solid var(--amber-mid); }
+  .pick-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 4px; }
+  .pick-name { font-size: 14px; font-weight: 600; color: var(--text-primary); margin-bottom: 3px; line-height: 1.3; }
+  .pick-origin { font-size: 12px; color: var(--text-secondary); margin-bottom: 10px; }
+  .pick-notes { font-size: 12px; color: var(--text-muted); line-height: 1.45; font-style: italic; }
+  .pick-arrow {
+    position: absolute;
+    top: 16px; right: 16px;
+    font-size: 12px;
+    color: var(--text-muted);
+    opacity: 0;
+    transition: opacity 0.15s;
+  }
+  .pick-card:hover .pick-arrow { opacity: 1; }
+
+  /* ── Stars ── */
+  .stars { display: flex; align-items: center; gap: 2px; margin-bottom: 8px; }
+  .star { font-size: 12px; color: #E5E7EB; }
+  .star.on { color: var(--amber-mid); }
+  .star.bonus { font-size: 11px; color: var(--amber-mid); margin-left: 2px; font-weight: 600; }
+  .rating-val { font-size: 12px; color: var(--text-secondary); margin-left: 5px; font-weight: 500; }
+
+  /* ── Badges ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    padding: 2px 7px;
+    border-radius: 4px;
+    font-size: 11px;
+    font-weight: 500;
+    line-height: 1.5;
+  }
+  .b-decaf { background: var(--purple-bg); color: var(--purple); }
+  .b-organic { background: var(--green-bg); color: var(--green); }
+  .b-process { background: var(--blue-bg); color: var(--blue); }
+  .b-rating {
+    background: var(--amber-soft);
+    color: var(--amber);
+    border: 1px solid #FDE68A;
+  }
+  .b-wishlist { background: var(--surface-2); color: var(--text-secondary); border: 1px solid var(--border); }
+  .b-current { background: var(--green-bg); color: var(--green); }
+
+  /* ── Filters ── */
+  .filter-bar {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 18px;
+    margin-bottom: 12px;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 10px;
+    align-items: flex-end;
+    box-shadow: var(--shadow-sm);
+  }
+  .fg { display: flex; flex-direction: column; gap: 4px; }
+  .fg label { font-size: 11px; font-weight: 500; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.05em; }
+  .fg input, .fg select {
+    height: 32px;
+    padding: 0 10px;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    color: var(--text-primary);
+    background: var(--surface);
+    outline: none;
+    transition: border-color 0.15s, box-shadow 0.15s;
+    font-family: inherit;
+    min-width: 130px;
+  }
+  .fg input { min-width: 210px; }
+  .fg input:focus, .fg select:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px rgba(28,28,30,0.06);
+  }
+  .btn {
+    height: 32px;
+    padding: 0 14px;
+    border-radius: var(--radius-sm);
+    font-size: 13px;
+    font-family: inherit;
+    font-weight: 500;
+    cursor: pointer;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    color: var(--text-secondary);
+    transition: all 0.15s;
+    align-self: flex-end;
+  }
+  .btn:hover { background: var(--surface-2); color: var(--text-primary); border-color: #D1D5DB; }
+
+  /* ── Table ── */
+  .table-wrap {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    overflow: hidden;
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 28px;
+  }
+  .table-footer {
+    padding: 10px 18px;
+    font-size: 12px;
+    color: var(--text-muted);
+    border-top: 1px solid var(--border);
+    background: var(--surface-2);
+  }
+  table { width: 100%; border-collapse: collapse; }
+  thead { border-bottom: 1px solid var(--border); }
+  th {
+    padding: 10px 14px;
+    text-align: left;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--text-secondary);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    background: var(--surface-2);
+    cursor: pointer;
+    user-select: none;
+    white-space: nowrap;
+    transition: color 0.15s;
+  }
+  th:hover { color: var(--text-primary); }
+  th.sorted { color: var(--text-primary); }
+  .sort-icon { margin-left: 4px; opacity: 0.4; font-size: 10px; }
+  th.sorted .sort-icon { opacity: 1; }
+  td {
+    padding: 11px 14px;
+    border-bottom: 1px solid var(--border);
+    font-size: 13px;
+    vertical-align: middle;
+  }
+  tr:last-child td { border-bottom: none; }
+  tbody tr {
+    cursor: pointer;
+    transition: background 0.1s;
+  }
+  tbody tr:hover td { background: #FAFAFA; }
+  .td-brand { font-weight: 500; color: var(--text-primary); }
+  .td-loc { font-size: 11px; color: var(--text-muted); margin-top: 1px; }
+  .td-name { font-weight: 500; }
+  .td-badges { display: flex; gap: 4px; flex-wrap: wrap; margin-top: 3px; }
+  .td-country { color: var(--text-secondary); }
+  .td-notes {
+    max-width: 220px;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    color: var(--text-muted);
+    font-style: italic;
+  }
+  .td-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    color: var(--blue);
+    font-size: 12px;
+    text-decoration: none;
+    font-weight: 500;
+    padding: 3px 8px;
+    border-radius: 4px;
+    border: 1px solid #BFDBFE;
+    background: var(--blue-bg);
+    transition: all 0.15s;
+    white-space: nowrap;
+  }
+  .td-link:hover { background: #DBEAFE; border-color: #93C5FD; }
+  .roast-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 12px;
+    color: var(--text-secondary);
+  }
+  .roast-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .rd-light { background: #D4A96A; }
+  .rd-medium { background: #7C4B2A; }
+  .rd-dark { background: #1C1C1E; }
+
+  /* ── Modal ── */
+  .overlay {
+    display: none;
+    position: fixed;
+    inset: 0;
+    background: rgba(0,0,0,0.35);
+    backdrop-filter: blur(2px);
+    z-index: 200;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+  }
+  .overlay.open { display: flex; }
+  .modal {
+    background: var(--surface);
+    border-radius: 14px;
+    width: 100%;
+    max-width: 520px;
+    max-height: 88vh;
+    overflow-y: auto;
+    box-shadow: var(--shadow-lg);
+    position: relative;
+    animation: slideUp 0.18s ease;
+  }
+  @keyframes slideUp { from { transform: translateY(12px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+  .modal-header {
+    padding: 22px 24px 16px;
+    border-bottom: 1px solid var(--border);
+    position: sticky;
+    top: 0;
+    background: var(--surface);
+    z-index: 1;
+  }
+  .modal-close {
+    position: absolute;
+    top: 18px; right: 18px;
+    width: 28px; height: 28px;
+    border-radius: 6px;
+    border: 1px solid var(--border);
+    background: var(--surface);
+    cursor: pointer;
+    font-size: 14px;
+    color: var(--text-secondary);
+    display: flex; align-items: center; justify-content: center;
+    transition: all 0.15s;
+  }
+  .modal-close:hover { background: var(--surface-2); color: var(--text-primary); }
+  .modal-brand { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 4px; }
+  .modal-name { font-size: 20px; font-weight: 700; color: var(--text-primary); letter-spacing: -0.02em; line-height: 1.2; margin-bottom: 10px; }
+  .modal-body { padding: 20px 24px; }
+  .modal-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 18px; }
+  .mg-item { }
+  .mg-label { font-size: 11px; font-weight: 500; color: var(--text-muted); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 2px; }
+  .mg-value { font-size: 13px; color: var(--text-primary); font-weight: 500; }
+  .modal-divider { height: 1px; background: var(--border); margin: 16px 0; }
+  .modal-notes-label { font-size: 11px; font-weight: 600; color: var(--text-secondary); text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 8px; }
+  .modal-notes-text { font-size: 14px; color: var(--text-secondary); line-height: 1.7; font-style: italic; }
+  .modal-tasting { margin-bottom: 14px; }
+  .tasting-chips { display: flex; flex-wrap: wrap; gap: 6px; margin-top: 6px; }
+  .tasting-chip {
+    font-size: 12px;
+    padding: 3px 10px;
+    background: var(--amber-soft);
+    color: var(--amber);
+    border-radius: 20px;
+    border: 1px solid #FDE68A;
+  }
+  .modal-link {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    color: var(--blue);
+    font-size: 13px;
+    font-weight: 500;
+    text-decoration: none;
+    padding: 7px 14px;
+    border-radius: var(--radius-sm);
+    border: 1px solid #BFDBFE;
+    background: var(--blue-bg);
+    margin-top: 14px;
+    transition: all 0.15s;
+  }
+  .modal-link:hover { background: #DBEAFE; }
+  .modal-footer { padding: 0 24px 20px; }
+
+  /* ── Wishlist ── */
+  .wishlist-grid { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; margin-bottom: 28px; }
+  .wish-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius);
+    padding: 14px 16px;
+    box-shadow: var(--shadow-sm);
+  }
+  .wish-roaster { font-size: 13px; font-weight: 600; color: var(--text-primary); margin-bottom: 2px; }
+  .wish-loc { font-size: 12px; color: var(--text-muted); margin-bottom: 8px; }
+
+  /* ── Responsive ── */
+  @media (max-width: 900px) {
+    .kpi-row { grid-template-columns: repeat(3, 1fr); }
+    .charts-2, .charts-3 { grid-template-columns: 1fr; }
+  }
+  @media (max-width: 600px) {
+    .kpi-row { grid-template-columns: repeat(2, 1fr); }
+    .main { padding: 16px; }
+    .header { padding: 0 16px; }
+  }
+</style>
+</head>
+<body>
+
+<header class="header">
+  <div class="header-left">
+    <div class="header-logo">☕</div>
+    <h1>Coffee Journal</h1>
+    <span class="header-sub">— Jenna's tasting log</span>
+  </div>
+  <span class="header-badge" id="headerCount"></span>
+</header>
+
+<main class="main">
+
+  <!-- KPIs -->
+  <div class="kpi-row" id="kpiRow"></div>
+
+  <!-- Charts Row 1 -->
+  <div class="charts-2" style="margin-bottom:16px">
+    <div class="card">
+      <div class="card-title">Rating Distribution</div>
+      <canvas id="chartRating"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Top Countries of Origin</div>
+      <canvas id="chartCountry"></canvas>
+    </div>
+  </div>
+
+  <!-- Charts Row 2 -->
+  <div class="charts-3">
+    <div class="card">
+      <div class="card-title">Process Method</div>
+      <canvas id="chartProcess"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Roast Profile</div>
+      <canvas id="chartRoast"></canvas>
+    </div>
+    <div class="card">
+      <div class="card-title">Avg Rating Over Time</div>
+      <canvas id="chartTimeline"></canvas>
+    </div>
+  </div>
+
+  <!-- Top Picks -->
+  <div class="section-head">
+    <span class="section-title">Perfect Cups — Rated 5+</span>
+    <span class="section-count" id="picksCount"></span>
+  </div>
+  <div class="picks-grid" id="picksGrid"></div>
+
+  <!-- Table -->
+  <div class="section-head">
+    <span class="section-title">All Coffees</span>
+  </div>
+
+  <div class="filter-bar">
+    <div class="fg">
+      <label>Search</label>
+      <input type="text" id="fSearch" placeholder="Brand, coffee, flavor, notes…">
+    </div>
+    <div class="fg">
+      <label>Country</label>
+      <select id="fCountry"><option value="">All Countries</option></select>
+    </div>
+    <div class="fg">
+      <label>Roast</label>
+      <select id="fRoast"><option value="">All Roasts</option></select>
+    </div>
+    <div class="fg">
+      <label>Process</label>
+      <select id="fProcess"><option value="">All Processes</option></select>
+    </div>
+    <div class="fg">
+      <label>Min Rating</label>
+      <select id="fRating">
+        <option value="">Any</option>
+        <option value="5">5+ (Perfect)</option>
+        <option value="4">4+ (Great)</option>
+        <option value="3">3+ (Good)</option>
+      </select>
+    </div>
+    <div class="fg">
+      <label>Type</label>
+      <select id="fDecaf">
+        <option value="">All</option>
+        <option value="decaf">Decaf only</option>
+        <option value="caf">Caffeinated only</option>
+      </select>
+    </div>
+    <button class="btn" onclick="resetFilters()">Reset</button>
+  </div>
+
+  <div class="table-wrap">
+    <div style="overflow-x:auto">
+      <table>
+        <thead>
+          <tr>
+            <th onclick="sortBy('dateSort')" id="th-dateSort">Date <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('brand')" id="th-brand">Brand <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('name')" id="th-name">Coffee <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('country')" id="th-country">Origin <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('process')" id="th-process">Process <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('roastProfile')" id="th-roastProfile">Roast <span class="sort-icon">↕</span></th>
+            <th onclick="sortBy('rating')" id="th-rating">Rating <span class="sort-icon">↕</span></th>
+            <th>Tasting Notes</th>
+            <th></th>
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
+    <div class="table-footer" id="tableFooter"></div>
+  </div>
+
+  <!-- Wishlist -->
+  <div class="section-head">
+    <span class="section-title">Roaster Wishlist</span>
+    <span class="section-count">10 roasters</span>
+  </div>
+  <div class="wishlist-grid" id="wishlistGrid"></div>
+
+</main>
+
+<!-- Modal -->
+<div class="overlay" id="overlay" onclick="closeOverlay(event)">
+  <div class="modal" id="modal">
+    <div class="modal-header">
+      <button class="modal-close" onclick="closeModal()">✕</button>
+      <div class="modal-brand" id="mBrand"></div>
+      <div class="modal-name" id="mName"></div>
+      <div id="mStars"></div>
+    </div>
+    <div class="modal-body">
+      <div class="modal-grid" id="mGrid"></div>
+      <div id="mTasting"></div>
+      <div class="modal-divider"></div>
+      <div class="modal-notes-label">Jenna's Notes</div>
+      <div class="modal-notes-text" id="mNotes"></div>
+    </div>
+    <div class="modal-footer" id="mFooter"></div>
+  </div>
+</div>
+
+<script>
+/* ─── DATA ─── */
+const coffees = [
+  {date:"April 2026",ds:"2026-04",brand:"FlowerChildCoffee",loc:"Oakland, CA",name:"Gaharo",country:"Burundi",region:"Murumvya",process:"Washed",roast:"Medium",varietal:"Red Bourbon",decaf:false,organic:false,rating:4,tasting:"",notes:"Weird coffee; small beans; smells like fruit but ultimately tastes irony to me. Strange.",link:""},
+  {date:"March 2026",ds:"2026-03",brand:"Flor and Seed",loc:"San Diego, CA",name:"Filter",country:"Mexico",region:"Xixintonil",process:"Honey",roast:"Light",varietal:"Bourbon",decaf:false,organic:false,rating:4,tasting:"Silky Dark, Chocolate, Nutty, Apple Pie",notes:"I like this coffee but I like the coffee shop it came out of even more. A great direct-from-Mexico coffee shop.",link:""},
+  {date:"February 2026",ds:"2026-02",brand:"Lobos",loc:"Orlando, FL",name:"Papua New Guinea",country:"Papua New Guinea",region:"Purosa AX",process:"Washed",roast:"Medium",varietal:"",decaf:false,organic:false,rating:3,tasting:"Sweet, Raw Sugar",notes:"Just okay. Somewhat uninspiring. Maybe because it was 3 months old.",link:""},
+  {date:"February 2026",ds:"2026-02",brand:"Passalacqua",loc:"Napoli, Italy",name:"The Original Neopolitan Blend",country:"Blend (10 origins)",region:"",process:"Unknown",roast:"Dark",varietal:"",decaf:false,organic:false,rating:4,tasting:"Caramel, Chocolate, Rum Liquor, Citrus, Honey",notes:"A complete surprise. Not only is it fresh and strong but it evokes memories. Feels old traditional like the real deal of life.",link:""},
+  {date:"January 2026",ds:"2026-01",brand:"Toraja Mountain Coffee",loc:"Orlando, FL",name:"Pulu",country:"Indonesia",region:"Pulu pulu",process:"Semi Washed",roast:"Dark",varietal:"",decaf:false,organic:false,rating:3,tasting:"Semi-sweet chocolate, caramel, toasted coconut",notes:"Too dark. Fishy on opening. Just ok.",link:""},
+  {date:"January 2026",ds:"2026-01",brand:"Han",loc:"Orlando, FL",name:"Colombia Rodrigo Sanchez",country:"Colombia",region:"Finca La Loma",process:"Natural",roast:"Light",varietal:"Laurina",decaf:false,organic:false,rating:4.5,tasting:"Cranberry, Vanilla, Plum Butter, Raw Honey",notes:"Intense perfume and cranberry notes. A rare varietal I have never had before. Should be a 5 but I rate it 4.5 because it is not my thing.",link:""},
+  {date:"January 2026",ds:"2026-01",brand:"Han",loc:"Orlando, FL",name:"Sunlight",country:"Ethiopia / Brazil",region:"",process:"Natural",roast:"Medium",varietal:"",decaf:false,organic:false,rating:4,tasting:"Dried berries, blood orange, chocolate granola",notes:"Wow I love this sturdy coffee I really taste the chocolate granola. Very nice and unique. Velvety texture.",link:""},
+  {date:"January 2026",ds:"2026-01",brand:"Filigree",loc:"Orlando, FL",name:"San Mateo Yoloxochitlan",country:"Mexico",region:"Sierra Mazateca, Oaxaca",process:"Washed",roast:"Medium",varietal:"Typica, Bourbon",decaf:false,organic:false,rating:5,tasting:"Cranberry, Orange Peel, Sugar Cane, Honeydew Melon",notes:"Beautiful nose, almost sparkling when you open the bag. Hard small beans. Great beautiful flavor. A joy to drink as pour over.",link:""},
+  {date:"January 2026",ds:"2026-01",brand:"Haan",loc:"Orlando, FL",name:"Moonlight",country:"Colombia / Brazil",region:"",process:"Washed and Natural",roast:"Dark",varietal:"",decaf:false,organic:false,rating:3.5,tasting:"Stone fruit, Pralines, Dark Chocolate",notes:"Light but dark tasting.",link:""},
+  {date:"November 2025",ds:"2025-11",brand:"Leatherback",loc:"Orlando, FL",name:"Party Wave",country:"Colombia",region:"Salado Blanco, Huila",process:"Washed",roast:"Medium",varietal:"Panama's",decaf:false,organic:true,rating:3,tasting:"Coconut, Banana, Citrusy",notes:"Fell short. Didn't taste much of the varietals. Got slightly better over time.",link:""},
+  {date:"November 2025",ds:"2025-11",brand:"Otis",loc:"Orlando, FL",name:"Pineapple Express",country:"Ethiopia",region:"Worka Sakaro",process:"Anaerobic Natural",roast:"Light",varietal:"",decaf:false,organic:false,rating:5,tasting:"Pineapple, Mango, Lemonade",notes:"Amazing pineapple and vanilla smell and beautiful small beans.",link:""},
+  {date:"October 2025",ds:"2025-10",brand:"Birch Coffee",loc:"Long Island City, NY",name:"Nyamasheke",country:"Rwanda",region:"Nyamasheke",process:"",roast:"Medium",varietal:"Bourbon",decaf:false,organic:false,rating:4,tasting:"Golden Raisin, Green Apple, Juicy",notes:"I really liked this coffee especially when it was fresh.",link:""},
+  {date:"August 2025",ds:"2025-08",brand:"Haan",loc:"Orlando, FL",name:"Jeju Colombia & Ethiopia",country:"Colombia / Ethiopia",region:"",process:"Washed",roast:"Light",varietal:"",decaf:false,organic:false,rating:4,tasting:"Tangerine, Chocolate Berries, Jasmine Green Tea",notes:"",link:""},
+  {date:"July 2025",ds:"2025-07",brand:"Rise Up",loc:"Salisbury, MD",name:"Finca La Fortuna",country:"Honduras",region:"",process:"",roast:"Medium",varietal:"",decaf:false,organic:true,rating:3,tasting:"",notes:"I like the art of the three ladies on the front. Rise Up is good at their art.",link:""},
+  {date:"July 2025",ds:"2025-07",brand:"Rise Up",loc:"Salisbury, MD",name:"Reflection Road",country:"Colombia / Honduras",region:"",process:"",roast:"Medium",varietal:"",decaf:false,organic:true,rating:4,tasting:"",notes:"The retro packaging is so beautiful and unbelievable. Extra star for the packaging.",link:""},
+  {date:"July 2025",ds:"2025-07",brand:"Moka & Co",loc:"New York, NY",name:"Sana'ani",country:"Yemen",region:"Johar Street, Hadah Area",process:"",roast:"Dark",varietal:"",decaf:false,organic:false,rating:3,tasting:"Heavy cardamom blend",notes:"This is huge big cardamom flavor. Shahriar brought from NYC. Would be good at Christmas.",link:"https://mokanco.shop/products/coffee-bag-specialty"},
+  {date:"June 2025",ds:"2025-06",brand:"Haan",loc:"Orlando, FL",name:"Colombia Sebastian Ramirez",country:"Colombia",region:"",process:"Carbonic Maceration",roast:"Light",varietal:"Pink Bourbon",decaf:false,organic:false,rating:5,tasting:"Passion fruit, kiwi, floral herbs",notes:"Amazing and beautiful. Haan is so good.",link:"https://haancoffee.com/collections/coffee/products/colombia-edwin-norena-sidra-copy"},
+  {date:"May 2025",ds:"2025-05",brand:"Haan",loc:"Orlando, FL",name:"Colombia Rodrigo Sanchez (Mango)",country:"Colombia",region:"",process:"Mango co-ferment",roast:"Light",varietal:"Purple Caturra",decaf:false,organic:false,rating:5,tasting:"Peach, tropical fruits, dried mango",notes:"Beautiful. What a great roaster. Mango.",link:""},
+  {date:"May 2025",ds:"2025-05",brand:"Stella",loc:"Orlando, FL",name:"El Horno",country:"Nicaragua",region:"Finca Misericordia",process:"Anaerobic Natural",roast:"Medium",varietal:"Red Catuai",decaf:false,organic:false,rating:5,tasting:"Cherry, Meyer lemon",notes:"Sweet, faint notes of cinnamon on nose and licorice on the mouth. Warm and cozy and full balance like a warm cherry pie.",link:""},
+  {date:"April 2025",ds:"2025-04",brand:"Haan",loc:"Orlando, FL",name:"Colombia Edwin Norena",country:"Colombia",region:"Edwin Norena",process:"Honey & Watermelon Mossto Co-Ferment",roast:"Light",varietal:"Castillo",decaf:false,organic:false,rating:6,tasting:"Watermelon, Jolly Ranchers, Guava",notes:"AMAZING WATERMELON SMELL AND TASTE!! UNBELIEVABLE!! HAS TO BE ONE OF THE BEST COFFEES IN THE WORLD. Best in class.",link:"https://haancoffee.com/collections/coffee/products/colombia-edwin-norena-sidra-copy"},
+  {date:"April 2025",ds:"2025-04",brand:"Cafe La Maison",loc:"Temecula, CA",name:"Ethiopian Sidama",country:"Ethiopia",region:"",process:"",roast:"",varietal:"",decaf:false,organic:false,rating:3,tasting:"",notes:"Red brick color. Woody. A little licorice.",link:""},
+  {date:"March 2025",ds:"2025-03",brand:"Coffee Collective",loc:"",name:"Geisha Neyver",country:"Peru",region:"Calamari's",process:"Washed",roast:"Light",varietal:"Geisha",decaf:false,organic:false,rating:5,tasting:"Balanced, floral, light chocolate, citrus, white peach, apricot",notes:"Breathtaking and makes you sit back and take a moment to reflect on life. Not too funky — just perfection in a cup.",link:""},
+  {date:"March 2025",ds:"2025-03",brand:"Vigilante",loc:"College Park, MD",name:"HARAZ",country:"Yemen",region:"",process:"",roast:"",varietal:"Jaadi",decaf:false,organic:false,rating:4,tasting:"Berry aroma, mulling spices, plum, fruitcake, syrupy",notes:"Deep, fun, strange — wouldn't drink it often but glad I had it. How unique.",link:""},
+  {date:"March 2025",ds:"2025-03",brand:"Downtown Credo",loc:"Orlando, FL",name:"Costa Rica",country:"Costa Rica",region:"Puntarenas, Monteverdi",process:"Fruit Dried",roast:"Medium",varietal:"Caturra, Catuai",decaf:false,organic:false,rating:4,tasting:"Cara Cara orange peel, full body, ripe pineapple",notes:"Funky like natural wine. Grew on me over time. Reminds me of bark.",link:""},
+  {date:"March 2025",ds:"2025-03",brand:"Ligature",loc:"Orlando, FL",name:"Los Guacharos",country:"Colombia",region:"Bruselas, Huila",process:"Washed",roast:"",varietal:"Pink Bourbon",decaf:false,organic:false,rating:3,tasting:"Pineapple Juice, Anise, Vanilla, Milk Chocolate",notes:"Great aroma. So juicy. But the coffee didn't taste anywhere near as good as it smelled.",link:""},
+  {date:"March 2025",ds:"2025-03",brand:"Ligature",loc:"Orlando, FL",name:"Maria Soraia",country:"Brazil",region:"Cerrado Mineiro, Serra do Salitre",process:"Anaerobic",roast:"",varietal:"Stars",decaf:false,organic:false,rating:null,tasting:"Blueberry, Ginger, Starfruit, Herbal, Boozy",notes:"Not yet reviewed (NS status).",link:""},
+  {date:"January 2025",ds:"2025-01",brand:"Ligature",loc:"Orlando, FL",name:"Bekele Kachara",country:"Ethiopia",region:"Bensa Sidama",process:"Natural",roast:"Light",varietal:"",decaf:false,organic:false,rating:5,tasting:"Strawberry, Melon, Orange, Rose, Campari, Anise",notes:"WOW! The beans are so small and exquisite like pearls. This coffee is stunning. You really get the rose and strawberry flavors.",link:""},
+  {date:"January 2025",ds:"2025-01",brand:"Vigilante",loc:"College Park, MD",name:"Las Veraneras",country:"El Salvador",region:"",process:"Black Honey",roast:"Medium",varietal:"San Pacho",decaf:false,organic:false,rating:4,tasting:"Molasses, Dried Fig, Hazelnut, Melon, Toffee",notes:"Good coffee from a cool shop in College Park — though the staff's lack of engagement really did this coffee a disservice.",link:""},
+  {date:"January 2025",ds:"2025-01",brand:"Perc",loc:"Savannah, GA",name:"Legendar Brazil",country:"Brazil",region:"Minas Gerais",process:"Natural",roast:"Medium",varietal:"Yellow, Red Catuai",decaf:false,organic:false,rating:3,tasting:"Almond Butter, Cocoa",notes:"Sometimes you don't need a coffee that has a lot to say. Sometimes you want a coffee that listens. Legender knows.",link:""},
+  {date:"January 2025",ds:"2025-01",brand:"Ampersand",loc:"Fort Worth, TX",name:"PERU",country:"Peru",region:"Candor",process:"",roast:"Dark",varietal:"",decaf:false,organic:true,rating:2,tasting:"Milk chocolate, hazelnut, cashew",notes:"I don't like Ampersand coffees generally. Too muddy dark and terrible.",link:""},
+  {date:"January 2025",ds:"2025-01",brand:"Ampersand",loc:"Fort Worth, TX",name:"MOONLIGHT BLEND",country:"Guatemala / Brazil",region:"",process:"",roast:"Dark",varietal:"",decaf:false,organic:false,rating:1,tasting:"Cocoa, brown sugar, peanut brittle",notes:"I just hate this coffee. Too dark and over roasted. All the wrong flavors.",link:""},
+  {date:"December 2024",ds:"2024-12",brand:"Lineage",loc:"Orlando, FL",name:"Guatemala (Unnamed)",country:"Guatemala",region:"Aatnango",process:"Washed",roast:"",varietal:"SL28",decaf:false,organic:false,rating:4,tasting:"Blackberry Jam, Lime",notes:"",link:""},
+  {date:"December 2024",ds:"2024-12",brand:"Boxcar",loc:"Boulder, CO",name:"Huila Regional Blend",country:"Colombia",region:"Huila",process:"Washed",roast:"Light",varietal:"Pink Bourbon, Caturra, Castillo",decaf:false,organic:false,rating:4,tasting:"Apple, Candied Orange, Milk Chocolate",notes:"Seems like a good everyday. I get the apple and chocolate. It does seem acidic.",link:""},
+  {date:"December 2024",ds:"2024-12",brand:"Lineage",loc:"Orlando, FL",name:"Ethiopia Limu (Unnamed)",country:"Ethiopia",region:"Limu",process:"Spring Water Washed",roast:"Light",varietal:"Heirloom",decaf:false,organic:false,rating:3.5,tasting:"Fuzzy Peach, White plum",notes:"Nice coffee that has a lot of white peach flavors you can taste.",link:""},
+  {date:"October 2024",ds:"2024-10",brand:"Corvus",loc:"Denver, CO",name:"Orchard Thief",country:"Rwanda",region:"Tim a rulindo",process:"",roast:"",varietal:"",decaf:false,organic:false,rating:5,tasting:"",notes:"Smooth velvety big juicy.",link:""},
+  {date:"October 2024",ds:"2024-10",brand:"New General Cafe",loc:"Orlando, FL",name:"Changanya",country:"Colombia / Ethiopia",region:"Narino, Yirgacheffe",process:"",roast:"",varietal:"",decaf:false,organic:false,rating:null,tasting:"Dried Fruit, Dark Chocolate",notes:"Creative dark funk. Very original.",link:""},
+  {date:"October 2024",ds:"2024-10",brand:"Blue Heron",loc:"St Michaels, MD",name:"Trappe's Finest",country:"",region:"",process:"",roast:"Dark",varietal:"",decaf:false,organic:false,rating:1,tasting:"Rich, chocolaty, subtle citrus and floral",notes:"It's just not a good coffee unfortunately.",link:""},
+  {date:"August 2024",ds:"2024-08",brand:"Black Fox Coffee",loc:"New York, NY",name:"Reserve Series Lot 03",country:"Colombia",region:"Huila",process:"Washed + Extended Fermentation",roast:"Light",varietal:"Pink Bourbon",decaf:false,organic:false,rating:3,tasting:"Peach, Raspberry, Floral, Wild, Delicate",notes:"For $32 I thought this was a very weak coffee and I hated it for the value. It's about a $20 coffee.",link:""},
+  {date:"July 2024",ds:"2024-07",brand:"Sunday Coffee Project",loc:"Portland, OR",name:"Sleep In",country:"Guatemala",region:"San Jorge",process:"",roast:"Light",varietal:"",decaf:false,organic:false,rating:4,tasting:"Sugary sweet, Lemon Tea, Jasmine",notes:"Light but standard in a strange way. An elevated diner coffee.",link:"https://sundaycoffeeproject.com/"},
+  {date:"July 2024",ds:"2024-07",brand:"Phuoc Sanh",loc:"Vietnam",name:"Vietnamese Coffee",country:"Vietnam",region:"Binh Duong",process:"",roast:"Medium",varietal:"Cherry, Catamor",decaf:false,organic:false,rating:3,tasting:"Raunchy",notes:"Raunchy fun Vietnamese coffee we had at a Vietnamese restaurant in Easton. Wish I had an Asian press for this.",link:"https://www.facebook.com/Caphedanhchonguoisanhdieu/"},
+  {date:"June 2024",ds:"2024-06",brand:"Newground",loc:"Oxford, UK",name:"Blue Ayarza",country:"Guatemala",region:"Lake Ayarza, Santa Rosa",process:"Natural",roast:"",varietal:"Bourbon, Catuai",decaf:false,organic:false,rating:5,tasting:"Guava, Blueberry, Chocolate",notes:"Beautiful aroma when you open the bag; I do smell the guava after the nutty smell. Deep nutty flavor. Lovely.",link:"https://www.newgroundcoffee.com/"},
+  {date:"June 2024",ds:"2024-06",brand:"Ceremony",loc:"Annapolis, MD",name:"Unnamed Peru",country:"Peru",region:"Cenfrocafe",process:"",roast:"Light",varietal:"",decaf:false,organic:false,rating:3,tasting:"Milk Chocolate, Hazelnut, Creamy",notes:"Just okay but way overpriced at ~$30.",link:""},
+  {date:"June 2024",ds:"2024-06",brand:"Rose",loc:"Zurich, Switzerland",name:"Sidra",country:"Colombia",region:"Cauca",process:"Advanced Fermentation Natural",roast:"Light",varietal:"",decaf:false,organic:false,rating:5,tasting:"Red Fruits",notes:"Beautiful red fruits.",link:""},
+  {date:"June 2024",ds:"2024-06",brand:"Rose",loc:"Zurich, Switzerland",name:"Aroma Nativo",country:"Colombia",region:"Huila",process:"Experimental Yeast Fermentation",roast:"Light",varietal:"Pink Bourbon",decaf:false,organic:false,rating:6,tasting:"Passion Fruit, Pineapple, Rose, Hops, Sweet Vibrant",notes:"WOW Amazing passion fruit competition grade coffee.",link:""},
+  {date:"May 2024",ds:"2024-05",brand:"Finca Cialitos",loc:"Old San Juan, PR",name:"Cafe Selecto",country:"Puerto Rico",region:"Puerto Rico",process:"",roast:"Medium",varietal:"",decaf:false,organic:false,rating:4,tasting:"",notes:"Great straightforward coffee. Perfect in a 'this is what coffee should taste like' way. Perfect texture, perfect chocolate.",link:""},
+  {date:"May 2024",ds:"2024-05",brand:"Orinoco",loc:"Jessup, MD",name:"Breakfast Blend",country:"",region:"",process:"",roast:"Dark",varietal:"",decaf:false,organic:false,rating:3,tasting:"Nutty, Chocolate, Bright",notes:"Great as French press.",link:""},
+  {date:"April 2024",ds:"2024-04",brand:"Public",loc:"Buffalo, NY",name:"Colombia",country:"Colombia",region:"Huila",process:"",roast:"Medium",varietal:"",decaf:false,organic:true,rating:3,tasting:"Lemon, orange chocolate, toasted almond",notes:"Just an average coffee.",link:""},
+  {date:"April 2024",ds:"2024-04",brand:"Pax & Beneficia",loc:"Grapevine, TX",name:"Mano del Puma",country:"El Salvador",region:"San Juan de Dios",process:"Dehydrated Honey / Natural",roast:"Light",varietal:"Heirloom",decaf:false,organic:false,rating:3,tasting:"Keylime, Green Apple, Almond, Melon",notes:"Had a really nice bouquet out of the bag but the taste falls flat to me.",link:""},
+  {date:"April 2024",ds:"2024-04",brand:"Speedwell",loc:"Plymouth, MA",name:"Nor'Easter",country:"Colombia / Guatemala",region:"",process:"Washed",roast:"Dark",varietal:"",decaf:false,organic:false,rating:3,tasting:"Dark chocolate, graham cracker, anise",notes:"Went bad quickly (turned to tire-burn smell). Overall taste was just okay for me.",link:"https://speedwellcoffee.com/products/noreaster"},
+  {date:"March 2024",ds:"2024-03",brand:"Speedwell",loc:"Plymouth, MA",name:"El Salvador Los Cipreses",country:"El Salvador",region:"Santa Ana",process:"Washed",roast:"Light",varietal:"Pacas, Bourbon",decaf:false,organic:false,rating:4,tasting:"",notes:"I liked this one but I am learning I don't love lightly roasted coffees.",link:"https://speedwellcoffee.com/products/el-salvador-los-cipreses"},
+  {date:"March 2024",ds:"2024-03",brand:"Black Fox Coffee",loc:"New York, NY",name:"Sao Jose Catuai",country:"Brazil",region:"Regiao Vulcanica",process:"Natural",roast:"Medium",varietal:"Red Catuai",decaf:false,organic:false,rating:5,tasting:"Milk Chocolate, Almond, Black Tea",notes:"",link:""},
+  {date:"February 2024",ds:"2024-02",brand:"Little Owl",loc:"Denver, CO",name:"Aricha Adorsi",country:"Ethiopia",region:"Yirgacheffe",process:"Washed",roast:"",varietal:"",decaf:false,organic:false,rating:4,tasting:"Brown sugar, green apple, lemon peel",notes:"",link:""},
+  {date:"February 2024",ds:"2024-02",brand:"Kuma",loc:"Seattle, WA",name:"Murundo",country:"Rwanda",region:"Mehembe Sector",process:"Washed",roast:"Light",varietal:"Local Bourbon",decaf:false,organic:false,rating:4,tasting:"Apple Butter, Dried Mango, Dates",notes:"Really lovely especially when first opened. Beautiful sweet flavors on the nose. Unfortunately it didn't have longevity and faded after opening.",link:""},
+  {date:"January 2024",ds:"2024-01",brand:"Little Owl",loc:"Denver, CO",name:"Penrose Blend",country:"Mexico / Brazil",region:"",process:"Washed + Natural",roast:"Medium",varietal:"Bourbon, Catuai",decaf:false,organic:false,rating:5,tasting:"Chocolate Wafer, Berries, Heavy Body",notes:"Amazing. Totally taste the chocolate wafer. Almost a perfect coffee. Not fruity. Love it.",link:"https://www.littleowlcoffee.com/store/Penrose"},
+  {date:"December 2023",ds:"2023-12",brand:"Tinker Coffee",loc:"Indianapolis, IN",name:"Keramo",country:"Ethiopia",region:"Bensa, Sidama",process:"Washed",roast:"Light",varietal:"",decaf:false,organic:false,rating:4.5,tasting:"Peony, Mango Candy, Peach",notes:"A really lovely coffee. The beans smell intoxicating in a beautiful almost fermented/drunk way. Good balance of fruit that lingers but not overbearingly acidic.",link:""},
+  {date:"November 2023",ds:"2023-11",brand:"Harry and David's",loc:"",name:"Breakfast Blend (Ground)",country:"",region:"",process:"",roast:"Dark",varietal:"",decaf:false,organic:false,rating:2.5,tasting:"",notes:"Dark diner coffee. Not bad, not great. Fun to drink for two days and I'm done.",link:""},
+  {date:"November 2023",ds:"2023-11",brand:"Rise Up",loc:"Salisbury, MD",name:"Organic Blues Blend",country:"Central America",region:"",process:"",roast:"Dark",varietal:"",decaf:false,organic:true,rating:3.5,tasting:"Clean, Smooth, Sweet",notes:"I get a distinct menthol taste which is fun. Rise Up says medium roast but I think it is dark.",link:""},
+  {date:"November 2023",ds:"2023-11",brand:"Pax & Beneficia",loc:"Grapevine, TX",name:"Alto Inambari",country:"Peru",region:"Puno",process:"Washed",roast:"Light",varietal:"Caturra, Typica, Bourbon",decaf:false,organic:false,rating:3,tasting:"Vanilla, Blood Orange, Plum",notes:"I don't really like this coffee for how hoity toity it is and it went sour fairly quickly.",link:""},
+  {date:"September 2023",ds:"2023-09",brand:"Iron Skillet Coffee",loc:"Berlin, MD",name:"Indian Malabar",country:"India",region:"",process:"",roast:"Dark",varietal:"",decaf:false,organic:false,rating:4.5,tasting:"",notes:"Wow! Beautiful dark roast. The beans are stunningly beautiful and the taste is full body but not overwhelming. How completely enjoyable.",link:""},
+  {date:"September 2023",ds:"2023-09",brand:"Ethne Coffee Roasters",loc:"Snow Hill, MD",name:"Costa Rica",country:"Costa Rica",region:"",process:"",roast:"Medium",varietal:"",decaf:false,organic:false,rating:3,tasting:"Caramel, Milk Chocolate, Citrus",notes:"It's an everyday coffee but nothing notable here for me.",link:"https://www.ethnecoffeeroasters.com/product-page/costa-rican"},
+  {date:"July 2023",ds:"2023-07",brand:"Coffeehaus",loc:"Detroit, MI",name:"Light Blend",country:"Guatemala / Brazil",region:"",process:"",roast:"Medium",varietal:"",decaf:false,organic:false,rating:3,tasting:"Silky, Sweet, Fresh",notes:"",link:""},
+  {date:"July 2023",ds:"2023-07",brand:"Leaves Coffee",loc:"Japan",name:"Ashenafi",country:"Ethiopia",region:"Gedio Yirgacheffe",process:"Natural",roast:"Medium",varietal:"Dega",decaf:false,organic:false,rating:4.5,tasting:"Cranberry, White Grape, Mandarin Orange",notes:"The most beautiful perfumed floral taste, definitely cranberry and mandarin but I also get jasmine. Probably one of the best natural coffees I ever had.",link:""},
+  {date:"July 2023",ds:"2023-07",brand:"Ethne Coffee Roasters",loc:"Snow Hill, MD",name:"Chinese Yunnan",country:"China",region:"Yunnan",process:"Natural",roast:"Medium",varietal:"",decaf:false,organic:false,rating:2,tasting:"Funky",notes:"Appreciate the funk and how unique it is but hate the coffee, honestly. Can't drink it.",link:""},
+  {date:"June 2023",ds:"2023-06",brand:"Ethne Coffee Roasters",loc:"Snow Hill, MD",name:"Thai Omkoi",country:"Thailand",region:"",process:"",roast:"Medium",varietal:"",decaf:false,organic:false,rating:3.5,tasting:"Lime, floral, chamomile",notes:"Can't believe this is coming out of Snow Hill. Unique! Much better as pour over than espresso.",link:""},
+  {date:"May 2023",ds:"2023-05",brand:"Iron Skillet Coffee",loc:"Berlin, MD",name:"Mexico Decaf",country:"Mexico",region:"",process:"",roast:"Medium",varietal:"",decaf:true,organic:false,rating:5,tasting:"Silky mouthfeel, floral, cactus",notes:"Excellent decaf by small town roaster who roasts in his cast iron skillet. Silky beautiful mouth feel and elegant florals.",link:""},
+  {date:"March 2023",ds:"2023-03",brand:"Joe's Coffee",loc:"New York, NY",name:"Nightcap",country:"Colombia",region:"Huila",process:"Ethyl acetate decaf, Washed",roast:"Medium",varietal:"",decaf:true,organic:false,rating:5,tasting:"Almond, molasses, cola",notes:"Best decaf I've ever had. Hard to tell it is even decaf. Amazing.",link:""},
+  {date:"March 2023",ds:"2023-03",brand:"Rise Up",loc:"Salisbury, MD",name:"Organic Decaf",country:"Honduras",region:"",process:"Swiss Water",roast:"Medium",varietal:"",decaf:true,organic:true,rating:4,tasting:"Buttery, mellow, smooth",notes:"Smooth and buttery with a pleasant aroma and medium body.",link:""},
+  {date:"March 2023",ds:"2023-03",brand:"Pax Beneficia",loc:"Grapevine, TX",name:"La Casona",country:"Mexico",region:"Finca Santa Cruz",process:"Washed",roast:"Medium",varietal:"Bourbon, Typica, Yellow Caturra",decaf:false,organic:false,rating:4,tasting:"Dark Chocolate, Nectarine, Honey",notes:"Reminiscent of licking a cactus in the desert. Dry, bitter, little fruits but surprisingly good with a Mexican breakfast.",link:""},
+  {date:"February 2023",ds:"2023-02",brand:"Devocion",loc:"New York, NY",name:"Decaf",country:"Colombia",region:"",process:"Molasses Process",roast:"",varietal:"",decaf:true,organic:false,rating:1,tasting:"Molasses, Sugar Cane",notes:"Tastes like rust and molasses. Overly acidic. Do not like.",link:"https://www.devocion.com/collections/house-blends/products/decaf"},
+  {date:"February 2023",ds:"2023-02",brand:"Subtext",loc:"Canada",name:"Carmelina Matis",country:"Guatemala",region:"Huehuetanango",process:"Washed",roast:"",varietal:"Caturra, Pache, Catuai, Bourbon",decaf:false,organic:false,rating:null,tasting:"Green Apple, Maple Candy, Pecan",notes:"No rating recorded (Dayglow subscription).",link:""},
+  {date:"February 2023",ds:"2023-02",brand:"Leaves Coffee",loc:"Japan",name:"Ashenafi (2nd purchase)",country:"Ethiopia",region:"Gedio Yirgacheffe",process:"Natural",roast:"",varietal:"Dega",decaf:false,organic:false,rating:null,tasting:"Cranberry, White Grape, Mandarin Orange",notes:"Second purchase — no rating logged (Dayglow subscription).",link:""},
+  {date:"February 2023",ds:"2023-02",brand:"Pax Beneficia",loc:"Grapevine, TX",name:"Irene",country:"Rwanda",region:"Lake Kivu",process:"Anaerobic Natural",roast:"",varietal:"Red Bourbon",decaf:false,organic:false,rating:5,tasting:"Fermented Grape, Sparkling, Jam",notes:"Awesome. Color of beans is beautiful. Very evenly sized. Dense. Wonderful flavor and smell. Definitely get the grape and effervescence.",link:""},
+  {date:"February 2023",ds:"2023-02",brand:"Rise Up",loc:"Salisbury, MD",name:"Organic Breakfast Coffee",country:"Ethiopia",region:"Yirgacheffe",process:"",roast:"Medium",varietal:"",decaf:false,organic:true,rating:4,tasting:"Citrus, Crisp, Reviving",notes:"Very consistent coffee. I like it for every day.",link:""},
+  {date:"February 2023",ds:"2023-02",brand:"Rise Up",loc:"Salisbury, MD",name:"Nicaragua Honey Arabica",country:"Nicaragua",region:"Matagalpa",process:"Honey",roast:"Medium",varietal:"",decaf:false,organic:true,rating:3.5,tasting:"Sweet, Smooth, Fruits",notes:"Much more consistently sized beans. I like Byron's roast a little better but they are very similar overall.",link:""},
+  {date:"January 2023",ds:"2023-01",brand:"Rise Up",loc:"Salisbury, MD",name:"Byron's Maracaturra",country:"Nicaragua",region:"Matagalpa",process:"",roast:"Medium",varietal:"Marigojipe, Caturra",decaf:false,organic:true,rating:3.5,tasting:"Floral, Subtly Sweet",notes:"Wildly huge beans. Bigger body and less acidity on direct comparison to the Honey Arabica.",link:""},
+  {date:"January 2023",ds:"2023-01",brand:"Edison Coffee Co.",loc:"Texas",name:"Koke Honey",country:"Ethiopia",region:"Yirgacheffe",process:"Honey",roast:"",varietal:"Kurume, Dega, Wolisho",decaf:false,organic:false,rating:4,tasting:"Cherry, Raspberry, Coca-Cola",notes:"",link:""},
+  {date:"January 2023",ds:"2023-01",brand:"Keen Coffee",loc:"Netherlands",name:"San Felipe",country:"El Salvador",region:"Santa Ana",process:"Anaerobic Natural",roast:"",varietal:"Bourbon",decaf:false,organic:false,rating:4,tasting:"Dried Mango, Maple Syrup, Blueberry",notes:"",link:""},
+  {date:"January 2023",ds:"2023-01",brand:"Morgon",loc:"Gothenburg, Sweden",name:"Julekaff 001",country:"Colombia",region:"Tarqui",process:"Washed",roast:"Light",varietal:"Variedad Colombia",decaf:false,organic:false,rating:4,tasting:"Toffee, Pomegranate, Clementine",notes:"I've mostly been doing this French press and I do like it; I get toffee and pomegranate.",link:""},
+  {date:"December 2022",ds:"2022-12",brand:"Nomad Coffee",loc:"Barcelona, Spain",name:"Aquaiares",country:"Costa Rica",region:"Turrialba",process:"Molasses Fermentation",roast:"Light",varietal:"Centroamericano",decaf:false,organic:false,rating:2.75,tasting:"Red Fruits, Cacao Nibs, Orange",notes:"It just wasn't anything to write home about. It wasn't bad but it wasn't great either. Meh.",link:""},
+  {date:"December 2022",ds:"2022-12",brand:"Speedwell",loc:"Plymouth, MA",name:"Ethiopia Yirgacheffe",country:"Ethiopia",region:"Yirgacheffe",process:"Washed",roast:"Light",varietal:"Heirloom",decaf:false,organic:false,rating:5,tasting:"Peach, cherry, creamy strawberry",notes:"Beautiful.",link:""},
+  {date:"November 2022",ds:"2022-11",brand:"Bear MRKT",loc:"Dublin, Ireland",name:"The Holy Roast",country:"Colombia",region:"Belen, Huila",process:"Fully Washed",roast:"Medium",varietal:"Caturra, Colombia, Castillo",decaf:false,organic:false,rating:4,tasting:"Orange, Caramel",notes:"Fabulous well rounded coffee with great deep flavor. Love it.",link:"https://www.bearmarket.ie/"},
+  {date:"November 2022",ds:"2022-11",brand:"Dayglow",loc:"USA",name:"Sweet S01",country:"Costa Rica",region:"Tarrazu",process:"Yellow Honey",roast:"Light",varietal:"Caturra, Catuai",decaf:false,organic:false,rating:3,tasting:"Custard, Lime, Plum",notes:"I really get the lime/plum/custard feel. Velvety coffee. Also tastes a little stale though.",link:""},
+];
+
+const wishlist = [
+  {name:"Sey Coffee",loc:"New York, NY",status:"current"},
+  {name:"Day Glow",loc:"Los Angeles, CA",status:"current"},
+  {name:"Cat & Cloud",loc:"Santa Cruz, CA",status:"wish"},
+  {name:"Orchard Coffee",loc:"Waynesville, NC",status:"wish"},
+  {name:"Mom 'n 'Em Coffee",loc:"Cincinnati, OH",status:"wish"},
+  {name:"Arcade Coffee",loc:"Riverside, CA",status:"wish"},
+  {name:"Leslie Coffee CO",loc:"Wichita, KS",status:"wish"},
+  {name:"King State Coffee",loc:"Tampa, FL",status:"wish"},
+  {name:"Devocion",loc:"New York, NY",status:"wish"},
+  {name:"Terra Nova Coffee",loc:"New Hampshire",status:"wish"},
+];
+
+/* ─── STATE ─── */
+let filtered = [...coffees];
+let sortCol = 'ds';
+let sortDir = -1;
+
+/* ─── HELPERS ─── */
+function stars(r, small = false) {
+  if (r === null) return `<span style="color:var(--text-muted);font-size:12px">—</span>`;
+  const size = small ? 11 : 13;
+  let h = `<div class="stars" style="font-size:${size}px">`;
+  for (let i = 1; i <= 5; i++) {
+    if (i <= Math.floor(r)) h += `<span class="star on">★</span>`;
+    else if (i === Math.floor(r) + 1 && r % 1 >= 0.5) h += `<span class="star on" style="opacity:0.6">★</span>`;
+    else h += `<span class="star">★</span>`;
+  }
+  if (r > 5) h += `<span class="star bonus">+1</span>`;
+  h += `<span class="rating-val">${r}</span></div>`;
+  return h;
+}
+
+function roastPill(r) {
+  if (!r) return '—';
+  const low = r.toLowerCase();
+  let cls = 'rd-medium', label = r;
+  if (low.includes('light')) { cls = 'rd-light'; label = 'Light'; }
+  else if (low.includes('dark')) { cls = 'rd-dark'; label = 'Dark'; }
+  else if (low.includes('medium')) { cls = 'rd-medium'; label = 'Medium'; }
+  return `<span class="roast-pill"><span class="roast-dot ${cls}"></span>${label}</span>`;
+}
+
+/* ─── KPIs ─── */
+function buildKPIs() {
+  const rated = coffees.filter(c => c.rating !== null);
+  const avg = (rated.reduce((s, c) => s + c.rating, 0) / rated.length).toFixed(1);
+  const countries = new Set(coffees.map(c => c.country.split('/')[0].split(',')[0].trim()).filter(x => x));
+  const roasters = new Set(coffees.map(c => c.brand));
+  const items = [
+    { v: coffees.length, l: 'Coffees tasted' },
+    { v: avg, l: 'Avg rating', accent: true },
+    { v: coffees.filter(c => c.rating >= 5).length, l: 'Rated 5 or above' },
+    { v: countries.size, l: 'Countries explored' },
+    { v: roasters.size, l: 'Roasters tried' },
+    { v: coffees.filter(c => c.decaf).length, l: 'Decafs reviewed' },
+  ];
+  document.getElementById('kpiRow').innerHTML = items.map(k =>
+    `<div class="kpi"><div class="kpi-value${k.accent ? ' kpi-accent' : ''}">${k.v}</div><div class="kpi-label">${k.l}</div></div>`
+  ).join('');
+  document.getElementById('headerCount').textContent = `${coffees.length} coffees`;
+}
+
+/* ─── CHARTS ─── */
+const PALETTE = ['#1C1C1E','#3A3A3C','#6B4F3A','#8B6B50','#B45309','#D97706','#F59E0B','#FCD34D'];
+const chartDefaults = {
+  plugins: { legend: { display: false } },
+  scales: { x: { grid: { display: false }, ticks: { color: '#9CA3AF', font: { size: 11 } } },
+             y: { grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { size: 11 } } } }
+};
+
+function buildCharts() {
+  // Rating distribution
+  const buckets = {};
+  coffees.filter(c => c.rating !== null).forEach(c => { const k = c.rating; buckets[k] = (buckets[k]||0)+1; });
+  const rKeys = Object.keys(buckets).map(Number).sort((a,b)=>a-b);
+  new Chart(document.getElementById('chartRating'), {
+    type: 'bar',
+    data: {
+      labels: rKeys.map(r => r >= 6 ? '6 🏆' : r + '★'),
+      datasets: [{ data: rKeys.map(k => buckets[k]), backgroundColor: '#1C1C1E', borderRadius: 4, hoverBackgroundColor: '#D97706' }]
+    },
+    options: { ...chartDefaults, plugins: { legend: { display: false } } }
+  });
+
+  // Country
+  const cCounts = {};
+  coffees.forEach(c => { const k = c.country.split('/')[0].split(',')[0].trim(); if (k) cCounts[k] = (cCounts[k]||0)+1; });
+  const cSorted = Object.entries(cCounts).sort((a,b)=>b[1]-a[1]).slice(0,10);
+  new Chart(document.getElementById('chartCountry'), {
+    type: 'bar',
+    data: {
+      labels: cSorted.map(e=>e[0]),
+      datasets: [{ data: cSorted.map(e=>e[1]), backgroundColor: '#6B4F3A', borderRadius: 4, hoverBackgroundColor: '#D97706' }]
+    },
+    options: { indexAxis: 'y', ...chartDefaults, plugins: { legend: { display: false } }, scales: { x: { grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { size: 11 } } }, y: { grid: { display: false }, ticks: { color: '#6B7280', font: { size: 11 } } } } }
+  });
+
+  // Process
+  const pMap = {};
+  coffees.forEach(c => {
+    const p = (c.process||'').toLowerCase();
+    let label = !c.process ? 'Unknown' : p.includes('washed') && !p.includes('semi') ? 'Washed' : p.includes('natural')||p.includes('anaerobic') ? 'Natural / Anaerobic' : p.includes('honey') ? 'Honey' : p.includes('ferment')||p.includes('maceration') ? 'Fermented' : p.includes('decaf')||p.includes('water')||p.includes('ethyl') ? 'Decaf Process' : 'Other';
+    pMap[label] = (pMap[label]||0)+1;
+  });
+  new Chart(document.getElementById('chartProcess'), {
+    type: 'doughnut',
+    data: { labels: Object.keys(pMap), datasets: [{ data: Object.values(pMap), backgroundColor: PALETTE, borderWidth: 0 }] },
+    options: { cutout: '62%', plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, color: '#6B7280', boxWidth: 10, padding: 8 } } } }
+  });
+
+  // Roast
+  const rMap = { Light:0, Medium:0, Dark:0, Unknown:0 };
+  coffees.forEach(c => {
+    const r = (c.roast||'').toLowerCase();
+    if (r.includes('dark')) rMap.Dark++; else if (r.includes('medium')) rMap.Medium++; else if (r.includes('light')) rMap.Light++; else rMap.Unknown++;
+  });
+  new Chart(document.getElementById('chartRoast'), {
+    type: 'doughnut',
+    data: { labels: ['Light','Medium','Dark','Unknown'], datasets: [{ data: [rMap.Light,rMap.Medium,rMap.Dark,rMap.Unknown], backgroundColor: ['#D4A96A','#7C4B2A','#1C1C1E','#E5E7EB'], borderWidth: 0 }] },
+    options: { cutout: '62%', plugins: { legend: { display: true, position: 'bottom', labels: { font: { size: 11 }, color: '#6B7280', boxWidth: 10, padding: 8 } } } }
+  });
+
+  // Timeline
+  const tMap = {};
+  coffees.filter(c => c.rating !== null && c.ds).forEach(c => { if (!tMap[c.ds]) tMap[c.ds]=[]; tMap[c.ds].push(c.rating); });
+  const months = Object.keys(tMap).sort();
+  new Chart(document.getElementById('chartTimeline'), {
+    type: 'line',
+    data: {
+      labels: months.map(m => { const [y,mo] = m.split('-'); return mo+'/'+y.slice(2); }),
+      datasets: [{ data: months.map(m => (tMap[m].reduce((s,v)=>s+v,0)/tMap[m].length).toFixed(2)), borderColor: '#1C1C1E', backgroundColor: 'rgba(28,28,30,0.06)', fill: true, tension: 0.4, pointRadius: 3, pointBackgroundColor: '#1C1C1E' }]
+    },
+    options: { plugins: { legend: { display: false } }, scales: { y: { min: 1, max: 6.2, grid: { color: '#F3F4F6' }, ticks: { color: '#9CA3AF', font: { size: 11 }, stepSize: 1 } }, x: { grid: { display: false }, ticks: { color: '#9CA3AF', font: { size: 10 }, maxRotation: 50, maxTicksLimit: 12 } } } }
+  });
+}
+
+/* ─── TOP PICKS ─── */
+function buildPicks() {
+  const picks = coffees.filter(c => c.rating >= 5).sort((a,b) => b.rating - a.rating || b.ds.localeCompare(a.ds));
+  document.getElementById('picksCount').textContent = picks.length + ' coffees';
+  document.getElementById('picksGrid').innerHTML = picks.map(c => {
+    const idx = coffees.indexOf(c);
+    return `<div class="pick-card${c.rating >= 6 ? ' legendary' : ''}" onclick="openModal(${idx})">
+      <span class="pick-arrow">↗</span>
+      <div class="pick-label">${c.brand} · ${c.date}</div>
+      <div class="pick-name">${c.name}${c.rating >= 6 ? ' 🏆' : ''}</div>
+      <div class="pick-origin">${c.country || 'Unknown origin'}${c.region ? ' · '+c.region : ''}</div>
+      ${stars(c.rating, true)}
+      ${c.tasting ? `<div class="pick-notes">${c.tasting}</div>` : ''}
+    </div>`;
+  }).join('');
+}
+
+/* ─── TABLE ─── */
+function buildTable() {
+  const tbody = document.getElementById('tableBody');
+  tbody.innerHTML = filtered.map(c => {
+    const idx = coffees.indexOf(c);
+    return `<tr onclick="openModal(${idx})">
+      <td style="color:var(--text-muted);font-size:12px;white-space:nowrap">${c.date}</td>
+      <td><div class="td-brand">${c.brand}</div><div class="td-loc">${c.loc}</div></td>
+      <td>
+        <div class="td-name">${c.name}</div>
+        <div class="td-badges">
+          ${c.decaf ? '<span class="badge b-decaf">Decaf</span>' : ''}
+          ${c.organic ? '<span class="badge b-organic">Organic</span>' : ''}
+        </div>
+      </td>
+      <td class="td-country">${c.country || '—'}</td>
+      <td>${c.process ? `<span class="badge b-process" style="max-width:140px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${c.process}</span>` : '—'}</td>
+      <td>${roastPill(c.roast)}</td>
+      <td style="white-space:nowrap">${stars(c.rating, true)}</td>
+      <td class="td-notes">${c.tasting || c.notes || '—'}</td>
+      <td onclick="event.stopPropagation()">${c.link ? `<a href="${c.link}" target="_blank" class="td-link">View ↗</a>` : ''}</td>
+    </tr>`;
+  }).join('');
+  document.getElementById('tableFooter').textContent = `Showing ${filtered.length} of ${coffees.length} coffees`;
+}
+
+function sortBy(col) {
+  if (sortCol === col) sortDir *= -1;
+  else { sortCol = col; sortDir = -1; }
+  document.querySelectorAll('th[id^="th-"]').forEach(th => th.classList.remove('sorted'));
+  const th = document.getElementById('th-' + col);
+  if (th) {
+    th.classList.add('sorted');
+    th.querySelector('.sort-icon').textContent = sortDir === -1 ? '↓' : '↑';
+  }
+  filtered.sort((a, b) => {
+    let va = a[col], vb = b[col];
+    if (va === null || va === undefined) va = col === 'rating' ? -1 : '';
+    if (vb === null || vb === undefined) vb = col === 'rating' ? -1 : '';
+    if (typeof va === 'number') return (va - vb) * sortDir;
+    return String(va).localeCompare(String(vb)) * sortDir;
+  });
+  buildTable();
+}
+
+/* ─── FILTERS ─── */
+function populateFilters() {
+  const countries = [...new Set(coffees.map(c => c.country.split('/')[0].split(',')[0].trim()).filter(x=>x))].sort();
+  const cf = document.getElementById('fCountry');
+  countries.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; cf.appendChild(o); });
+
+  const roasts = [...new Set(coffees.map(c => c.roast).filter(x=>x&&x.trim()))].sort();
+  const rf = document.getElementById('fRoast');
+  roasts.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v; rf.appendChild(o); });
+
+  const processes = [...new Set(coffees.map(c => c.process).filter(x=>x&&x.trim()))].sort();
+  const pf = document.getElementById('fProcess');
+  processes.forEach(v => { const o = document.createElement('option'); o.value = v; o.textContent = v.length>32?v.slice(0,32)+'…':v; pf.appendChild(o); });
+}
+
+function applyFilters() {
+  const s = document.getElementById('fSearch').value.toLowerCase();
+  const c = document.getElementById('fCountry').value;
+  const r = document.getElementById('fRoast').value;
+  const p = document.getElementById('fProcess').value;
+  const minR = parseFloat(document.getElementById('fRating').value)||0;
+  const d = document.getElementById('fDecaf').value;
+  filtered = coffees.filter(cf => {
+    if (s && !`${cf.brand} ${cf.name} ${cf.tasting} ${cf.notes} ${cf.country} ${cf.varietal} ${cf.loc}`.toLowerCase().includes(s)) return false;
+    if (c && !cf.country.includes(c)) return false;
+    if (r && cf.roast !== r) return false;
+    if (p && cf.process !== p) return false;
+    if (minR && (cf.rating === null || cf.rating < minR)) return false;
+    if (d === 'decaf' && !cf.decaf) return false;
+    if (d === 'caf' && cf.decaf) return false;
+    return true;
+  });
+  sortBy(sortCol);
+}
+
+function resetFilters() {
+  ['fSearch','fCountry','fRoast','fProcess','fRating','fDecaf'].forEach(id => document.getElementById(id).value='');
+  filtered = [...coffees]; sortBy('ds');
+}
+
+['fSearch','fCountry','fRoast','fProcess','fRating','fDecaf'].forEach(id =>
+  document.getElementById(id).addEventListener('input', applyFilters)
+);
+
+/* ─── MODAL ─── */
+function openModal(idx) {
+  const c = coffees[idx];
+  document.getElementById('mBrand').textContent = `${c.brand}  ·  ${c.loc || ''}`;
+  document.getElementById('mName').textContent = c.name;
+  document.getElementById('mStars').innerHTML = stars(c.rating);
+  document.getElementById('mGrid').innerHTML = [
+    ['Date', c.date], ['Country', c.country||'—'], ['Region', c.region||'—'],
+    ['Process', c.process||'—'], ['Roast', c.roast||'—'], ['Varietal', c.varietal||'—'],
+  ].map(([l,v]) => `<div class="mg-item"><div class="mg-label">${l}</div><div class="mg-value">${v}</div></div>`).join('');
+
+  const badges = [c.decaf?'<span class="badge b-decaf">Decaf</span>':'', c.organic?'<span class="badge b-organic">Organic</span>':''].filter(Boolean).join(' ');
+  if (badges) document.getElementById('mGrid').innerHTML += `<div class="mg-item" style="grid-column:1/-1">${badges}</div>`;
+
+  document.getElementById('mTasting').innerHTML = c.tasting ? `
+    <div class="modal-tasting">
+      <div class="mg-label">Tasting Notes</div>
+      <div class="tasting-chips">${c.tasting.split(',').map(t=>`<span class="tasting-chip">${t.trim()}</span>`).join('')}</div>
+    </div>` : '';
+  document.getElementById('mNotes').textContent = c.notes || 'No notes recorded.';
+  document.getElementById('mFooter').innerHTML = c.link
+    ? `<a href="${c.link}" target="_blank" class="modal-link">View product page ↗</a>` : '';
+  document.getElementById('overlay').classList.add('open');
+}
+
+function closeOverlay(e) { if (e.target === document.getElementById('overlay')) closeModal(); }
+function closeModal() { document.getElementById('overlay').classList.remove('open'); }
+document.addEventListener('keydown', e => { if (e.key === 'Escape') closeModal(); });
+
+/* ─── WISHLIST ─── */
+function buildWishlist() {
+  document.getElementById('wishlistGrid').innerHTML = wishlist.map(w => `
+    <div class="wish-card">
+      <div class="wish-roaster">${w.name}</div>
+      <div class="wish-loc">${w.loc}</div>
+      <span class="badge ${w.status === 'current' ? 'b-current' : 'b-wishlist'}">${w.status === 'current' ? 'Following' : 'On wishlist'}</span>
+    </div>`).join('');
+}
+
+/* ─── INIT ─── */
+buildKPIs();
+buildCharts();
+buildPicks();
+populateFilters();
+filtered = [...coffees];
+sortBy('ds');
+buildWishlist();
+</script>
+</body>
+</html>
